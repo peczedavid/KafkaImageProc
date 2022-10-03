@@ -23,6 +23,19 @@ function App() {
       });
   }
 
+  function ProcessBlackAndWhite() {
+    const url = "http://localhost:8080/api/process/black-and-white";
+    axios
+      .post(url, { src: baseImageRef.current.src })
+      .then((result) => {
+        processedBase64Ref.current.src = result.data;
+        processedBase64Ref.current.style.width = "275px";
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
   function encodeImage() {
     var file = fileRef.current.files[0];
     var reader = new FileReader();
@@ -49,6 +62,9 @@ function App() {
           <input type="file" ref={fileRef} onChange={encodeImage}></input>
           <Button variant="primary" onClick={ProcessGrayscale}>
             Grayscale
+          </Button>
+          <Button variant="primary" onClick={ProcessBlackAndWhite}>
+            Black and white
           </Button>
         </div>
       </Row>

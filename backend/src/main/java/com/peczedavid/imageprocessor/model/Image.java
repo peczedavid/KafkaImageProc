@@ -37,7 +37,7 @@ public class Image {
                 
                 b = value & 0x000000ff;
                 g = (value << 8) & 0x0000ff00;
-                r = (value << 16) & 0x00ff00000; 
+                r = (value << 16) & 0x00ff00000;
 
                 int grayscale = 0xff000000 | r | g | b;
 
@@ -55,10 +55,23 @@ public class Image {
     }
 
     public void ProcessBlackAndWhite() {
-        for (int x = 0; x < image.getWidth() / 2; x++) {
-            for (int y = 0; y < image.getHeight() / 2; y++) {
-                // argb
-                fastRGB.setRGB(x, y, 0xffffff00);
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                int rgb = fastRGB.getRGB(x, y);
+                int b = rgb & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int r = (rgb >> 16) & 0xff;
+                byte value = (byte)((b + g + r) / 3);
+                if(value > 0) value = -1;
+                else value = 0;
+
+                b = value & 0x000000ff;
+                g = (value << 8) & 0x0000ff00;
+                r = (value << 16) & 0x00ff00000;
+
+                int blackAndWhite = 0xff000000 | r | g | b;
+
+                fastRGB.setRGB(x, y, blackAndWhite);
             }
         }
 

@@ -15,9 +15,10 @@ import com.peczedavid.imageprocessor.model.Image;
 public class ImageController {
     
     @PostMapping("/black-and-white")
-    public String processBlackAndWhite(@RequestBody String src) {
-        String metaInfo = src.split(" ")[0];
-        String data = src.substring(metaInfo.length() + 1, src.length());
+    public String processBlackAndWhite(@RequestBody ImagePayload imagePayload) {
+        String src = imagePayload.getSrc();
+        String metaInfo = src.split(",")[0] + ",";
+        String data = src.substring(metaInfo.length(), src.length());
         String formattedData = data.replaceAll(" ", "+");
         Image image = new Image(formattedData);
         image.ProcessBlackAndWhite();
