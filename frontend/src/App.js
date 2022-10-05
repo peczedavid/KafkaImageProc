@@ -74,6 +74,7 @@ function App() {
             <Form.Select ref={selectionRef} style={{ width: "200px" }}>
               <option value="grayscale">Grayscale</option>
               <option value="black-and-white">Black and white</option>
+              <option value="contrast">Contrast</option>
             </Form.Select>
             <Button variant="primary" onClick={SendProcessRequest}>
               Process

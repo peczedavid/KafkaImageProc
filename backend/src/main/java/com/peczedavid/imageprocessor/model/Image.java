@@ -69,6 +69,38 @@ public class Image {
         writeBase64();
     }
 
+    public void processContrast() {
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                int rgb = fastRGB.getRGB(x, y);
+                int b = rgb & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int r = (rgb >> 16) & 0xff;
+                
+                double bDouble = (double)b/255.0;
+                double gDouble = (double)g/255.0;
+                double rDouble = (double)r/255.0;
+
+                bDouble = clamp(bDouble*bDouble*(4.0 - 3.0*bDouble), 0.0, 1.0);
+                gDouble = clamp(gDouble*gDouble*(4.0 - 3.0*gDouble), 0.0, 1.0);
+                rDouble = clamp(rDouble*rDouble*(4.0 - 3.0*rDouble), 0.0, 1.0);
+
+                b = (int)(bDouble*255.0);
+                g = (int)(gDouble*255.0);
+                r = (int)(rDouble*255.0);
+
+                b = b & 0x000000ff;
+                g = (g << 8) & 0x0000ff00;
+                r = (r << 16) & 0x00ff00000;
+
+                int color = 0xff000000 | r | g | b;
+                fastRGB.setRGB(x, y, color);
+            }
+        }
+
+        writeBase64();
+    }
+
     private void writeBase64() {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
@@ -81,6 +113,10 @@ public class Image {
 
     public String getBase64() {
         return modifiedBase64;
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private BufferedImage image;

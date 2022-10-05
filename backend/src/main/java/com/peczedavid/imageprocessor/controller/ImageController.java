@@ -30,6 +30,12 @@ public class ImageController {
         return new ResponseEntity<ImageResponse>(imageService.createResponse(), HttpStatus.OK);
     }
 
+    @PostMapping("/contrast")
+    public ResponseEntity<ImageResponse> processContrast(@RequestBody ImagePayload imagePayload) {
+        imageService.processContrast(imagePayload);
+        return new ResponseEntity<ImageResponse>(imageService.createResponse(), HttpStatus.OK);
+    }
+
     @Autowired
     private ImageService imageService;
 }

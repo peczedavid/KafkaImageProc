@@ -30,6 +30,13 @@ public class ImageService {
         processTimeMillis = System.currentTimeMillis() - startTimeMillis;
     }
 
+    public void processContrast(ImagePayload imagePayload) {
+        long startTimeMillis = System.currentTimeMillis();
+        processImagePayload(imagePayload);
+        image.processContrast();
+        processTimeMillis = System.currentTimeMillis() - startTimeMillis;
+    }
+
     private void processImagePayload(ImagePayload imagePayload) {
         String src = imagePayload.getSrc();
         metaInfo = imagePayload.getSrc().split(",")[0] + ",";
