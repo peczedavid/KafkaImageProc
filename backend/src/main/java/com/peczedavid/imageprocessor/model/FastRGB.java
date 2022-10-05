@@ -9,7 +9,6 @@ public class FastRGB {
 
         pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
         width = image.getWidth();
-        height = image.getHeight();
         image.getHeight();
         hasAlphaChannel = image.getAlphaRaster() != null;
         pixelLength = 3;
@@ -48,7 +47,6 @@ public class FastRGB {
     }
 
     private int width;
-    private int height;
     private boolean hasAlphaChannel;
     private int pixelLength;
     private byte[] pixels;

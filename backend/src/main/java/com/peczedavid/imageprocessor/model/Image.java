@@ -16,13 +16,14 @@ public class Image {
         try {
             InputStream is = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
             image = ImageIO.read(is);
-            InputStream isOi = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
-            interImage = ImageIO.read(isOi);
-            InputStream isO = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
-            originalImage = ImageIO.read(isO);
             fastRGB = new FastRGB(image);
-            fastRGBInter = new FastRGB(interImage);
-            fastRGBOriginal = new FastRGB(originalImage);
+
+            InputStream pp0 = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
+            pingpong0 = ImageIO.read(pp0);
+            fastRGBpp0 = new FastRGB(pingpong0);
+            InputStream pp1 = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
+            pingpong1 = ImageIO.read(pp1);
+            fastRGBpp1 = new FastRGB(pingpong1);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -107,7 +108,7 @@ public class Image {
         writeBase64();
     }
 
-    private int doKernel(int x, int y, int shift, double[][] mask, FastRGB rgbReader)
+    private int doKernel(int x, int y, int shift, FastRGB rgbReader)
     {
         double value = 0;
         int maski = 0, maskj = 0;
@@ -116,7 +117,7 @@ public class Image {
             for(int j = y-2; j <= (y+2); j++)
             {
                 int originalColor = (rgbReader.getRGB(i, j) >> shift) & 0xff;
-                value += mask[maski][maskj] * originalColor;
+                value += kernelMask[maski][maskj] * originalColor;
                 maskj++;
             }
             maski++;
@@ -126,8 +127,9 @@ public class Image {
         return (int)value;
     }
 
+    
     public void processBlur() {
-        double[][] kernelMask = new double[5][5];
+        kernelMask = new double[7][7];
         kernelMask[0] = new double[]{01, 04, 06, 04, 01};
         kernelMask[1] = new double[]{04, 16, 24, 16, 04};
         kernelMask[2] = new double[]{06, 24, 36, 24, 06};
@@ -140,47 +142,52 @@ public class Image {
             }
         }
 
-        for (int x = 0; x < originalImage.getWidth(); x++) {
-            for (int y = 0; y < originalImage.getHeight(); y++) {
-                int rgb = fastRGBOriginal.getRGB(x, y);
-                int b = rgb & 0xff;
-                int g = (rgb >> 8) & 0xff;
-                int r = (rgb >> 16) & 0xff;
-                
-                b = doKernel(x, y, 0, kernelMask, fastRGBOriginal);
-                g = doKernel(x, y, 8, kernelMask, fastRGBOriginal);
-                r = doKernel(x, y, 16, kernelMask, fastRGBOriginal);
-
-                b = b & 0x000000ff;
-                g = (g << 8) & 0x0000ff00;
-                r = (r << 16) & 0x00ff00000;
-
-                int color = 0xff000000 | r | g | b;
-                fastRGBInter.setRGB(x, y, color);
+        for(int bp = 0; bp < 5; bp++) {
+            if(pingpong == 0) {
+                for (int x = 0; x < pingpong0.getWidth(); x++) {
+                    for (int y = 0; y < pingpong0.getHeight(); y++) {
+                        int b = doKernel(x, y, 0, fastRGBpp0);
+                        int g = doKernel(x, y, 8, fastRGBpp0);
+                        int r = doKernel(x, y, 16, fastRGBpp0);
+        
+                        b = b & 0x000000ff;
+                        g = (g << 8) & 0x0000ff00;
+                        r = (r << 16) & 0x00ff00000;
+        
+                        int color = 0xff000000 | r | g | b;
+                        fastRGBpp1.setRGB(x, y, color);
+                    }
+                }
             }
+            else if(pingpong == 1) {
+                for (int x = 0; x < pingpong1.getWidth(); x++) {
+                    for (int y = 0; y < pingpong1.getHeight(); y++) {
+                        int b = doKernel(x, y, 0, fastRGBpp1);
+                        int g = doKernel(x, y, 8, fastRGBpp1);
+                        int r = doKernel(x, y, 16, fastRGBpp1);
+        
+                        b = b & 0x000000ff;
+                        g = (g << 8) & 0x0000ff00;
+                        r = (r << 16) & 0x00ff00000;
+        
+                        int color = 0xff000000 | r | g | b;
+                        fastRGBpp0.setRGB(x, y, color);
+                    }
+                }
+            }
+            pingpong = (pingpong + 1) % 2;
         }
 
-        for (int x = 0; x < interImage.getWidth(); x++) {
-            for (int y = 0; y < interImage.getHeight(); y++) {
-                int rgb = fastRGBInter.getRGB(x, y);
-                int b = rgb & 0xff;
-                int g = (rgb >> 8) & 0xff;
-                int r = (rgb >> 16) & 0xff;
-                
-                b = doKernel(x, y, 0, kernelMask, fastRGBInter);
-                g = doKernel(x, y, 8, kernelMask, fastRGBInter);
-                r = doKernel(x, y, 16, kernelMask, fastRGBInter);
-
-                b = b & 0x000000ff;
-                g = (g << 8) & 0x0000ff00;
-                r = (r << 16) & 0x00ff00000;
-
-                int color = 0xff000000 | r | g | b;
-                fastRGB.setRGB(x, y, color);
-            }
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            if(pingpong == 0)
+                ImageIO.write(pingpong0, "png", os);
+            else if(pingpong == 1)
+                ImageIO.write(pingpong1, "png", os);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        writeBase64();
+        modifiedBase64 = Base64.getEncoder().encodeToString(os.toByteArray());
     }
 
     private void writeBase64() {
@@ -201,11 +208,12 @@ public class Image {
         return Math.max(min, Math.min(max, value));
     }
 
+    private BufferedImage pingpong0, pingpong1;
     private BufferedImage image;
-    private BufferedImage interImage;
-    private BufferedImage originalImage;
     private FastRGB fastRGB;
-    private FastRGB fastRGBInter;
-    private FastRGB fastRGBOriginal;
+    private FastRGB fastRGBpp0, fastRGBpp1;
     private String modifiedBase64;
+
+    private double[][] kernelMask;
+    private int pingpong = 0;
 }
