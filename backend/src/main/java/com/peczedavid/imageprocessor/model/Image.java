@@ -16,7 +16,13 @@ public class Image {
         try {
             InputStream is = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
             image = ImageIO.read(is);
+            InputStream isOi = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
+            interImage = ImageIO.read(isOi);
+            InputStream isO = new ByteArrayInputStream(Base64.getDecoder().decode(base64code));
+            originalImage = ImageIO.read(isO);
             fastRGB = new FastRGB(image);
+            fastRGBInter = new FastRGB(interImage);
+            fastRGBOriginal = new FastRGB(originalImage);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,6 +107,82 @@ public class Image {
         writeBase64();
     }
 
+    private int doKernel(int x, int y, int shift, double[][] mask, FastRGB rgbReader)
+    {
+        double value = 0;
+        int maski = 0, maskj = 0;
+        for(int i = x-2; i <= (x+2); i++)
+        {
+            for(int j = y-2; j <= (y+2); j++)
+            {
+                int originalColor = (rgbReader.getRGB(i, j) >> shift) & 0xff;
+                value += mask[maski][maskj] * originalColor;
+                maskj++;
+            }
+            maski++;
+            maskj=0;
+        }
+
+        return (int)value;
+    }
+
+    public void processBlur() {
+        double[][] kernelMask = new double[5][5];
+        kernelMask[0] = new double[]{01, 04, 06, 04, 01};
+        kernelMask[1] = new double[]{04, 16, 24, 16, 04};
+        kernelMask[2] = new double[]{06, 24, 36, 24, 06};
+        kernelMask[3] = new double[]{04, 16, 24, 16, 04};
+        kernelMask[4] = new double[]{01, 04, 06, 04, 01};
+
+        for(int i = 0; i < 5; i++) {
+            for(int j = 0; j < 5; j++) {
+                kernelMask[i][j] *= 1.0 / 256.0;
+            }
+        }
+
+        for (int x = 0; x < originalImage.getWidth(); x++) {
+            for (int y = 0; y < originalImage.getHeight(); y++) {
+                int rgb = fastRGBOriginal.getRGB(x, y);
+                int b = rgb & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int r = (rgb >> 16) & 0xff;
+                
+                b = doKernel(x, y, 0, kernelMask, fastRGBOriginal);
+                g = doKernel(x, y, 8, kernelMask, fastRGBOriginal);
+                r = doKernel(x, y, 16, kernelMask, fastRGBOriginal);
+
+                b = b & 0x000000ff;
+                g = (g << 8) & 0x0000ff00;
+                r = (r << 16) & 0x00ff00000;
+
+                int color = 0xff000000 | r | g | b;
+                fastRGBInter.setRGB(x, y, color);
+            }
+        }
+
+        for (int x = 0; x < interImage.getWidth(); x++) {
+            for (int y = 0; y < interImage.getHeight(); y++) {
+                int rgb = fastRGBInter.getRGB(x, y);
+                int b = rgb & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int r = (rgb >> 16) & 0xff;
+                
+                b = doKernel(x, y, 0, kernelMask, fastRGBInter);
+                g = doKernel(x, y, 8, kernelMask, fastRGBInter);
+                r = doKernel(x, y, 16, kernelMask, fastRGBInter);
+
+                b = b & 0x000000ff;
+                g = (g << 8) & 0x0000ff00;
+                r = (r << 16) & 0x00ff00000;
+
+                int color = 0xff000000 | r | g | b;
+                fastRGB.setRGB(x, y, color);
+            }
+        }
+
+        writeBase64();
+    }
+
     private void writeBase64() {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
@@ -120,6 +202,10 @@ public class Image {
     }
 
     private BufferedImage image;
+    private BufferedImage interImage;
+    private BufferedImage originalImage;
     private FastRGB fastRGB;
+    private FastRGB fastRGBInter;
+    private FastRGB fastRGBOriginal;
     private String modifiedBase64;
 }

@@ -2,6 +2,7 @@ import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Dropdown from "react-bootstrap/Dropdown";
 import axios from "axios";
 import { useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -75,10 +76,21 @@ function App() {
               <option value="grayscale">Grayscale</option>
               <option value="black-and-white">Black and white</option>
               <option value="contrast">Contrast</option>
+              <option value="blur">Blur</option>
             </Form.Select>
             <Button variant="primary" onClick={SendProcessRequest}>
               Process
             </Button>
+            <Dropdown>
+              <Dropdown.Toggle variant="outline-primary">
+                Options
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+                <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
+                <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </Card.Body>
       </Card>

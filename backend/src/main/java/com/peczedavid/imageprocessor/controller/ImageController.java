@@ -36,6 +36,12 @@ public class ImageController {
         return new ResponseEntity<ImageResponse>(imageService.createResponse(), HttpStatus.OK);
     }
 
+    @PostMapping("/blur")
+    public ResponseEntity<ImageResponse> processBlur(@RequestBody ImagePayload imagePayload) {
+        imageService.processBlur(imagePayload);
+        return new ResponseEntity<ImageResponse>(imageService.createResponse(), HttpStatus.OK);
+    }
+
     @Autowired
     private ImageService imageService;
 }
