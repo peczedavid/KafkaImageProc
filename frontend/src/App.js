@@ -9,31 +9,31 @@ function App() {
   const baseImageRef = useRef();
   const processedBase64Ref = useRef();
   const fileRef = useRef();
+  const processTimeMillisRef = useRef();
 
   function ProcessGrayscale() {
-    const url = "http://localhost:8080/api/process/grayscale";
+    SendProcessRequest("http://localhost:8080/api/process/grayscale");
+  }
+
+  function ProcessBlackAndWhite() {
+    SendProcessRequest("http://localhost:8080/api/process/black-and-white");
+  }
+
+  function SendProcessRequest(url) {
     axios
       .post(url, { src: baseImageRef.current.src })
       .then((result) => {
-        processedBase64Ref.current.src = result.data;
-        processedBase64Ref.current.style.width = "275px";
+        HandleResult(result);
       })
       .catch((error) => {
         console.log(error);
       });
   }
 
-  function ProcessBlackAndWhite() {
-    const url = "http://localhost:8080/api/process/black-and-white";
-    axios
-      .post(url, { src: baseImageRef.current.src })
-      .then((result) => {
-        processedBase64Ref.current.src = result.data;
-        processedBase64Ref.current.style.width = "275px";
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  function HandleResult(result) {
+    processedBase64Ref.current.src = result.data.base64;
+    processedBase64Ref.current.style.width = "275px";
+    processTimeMillisRef.current.innerHTML = result.data.timeMillis + " ms";
   }
 
   function encodeImage() {
@@ -53,8 +53,17 @@ function App() {
       </Row>
       <Row>
         <div>
-          <img className="me-4" ref={baseImageRef} src="https://via.placeholder.com/272x275" alt="Original" />
-          <img ref={processedBase64Ref} src="https://via.placeholder.com/272x275" alt="Processed" />
+          <img
+            className="me-4"
+            ref={baseImageRef}
+            src="https://via.placeholder.com/272x275"
+            alt="Original"
+          />
+          <img
+            ref={processedBase64Ref}
+            src="https://via.placeholder.com/272x275"
+            alt="Processed"
+          />
         </div>
       </Row>
       <Row>
@@ -66,6 +75,7 @@ function App() {
           <Button variant="primary" onClick={ProcessBlackAndWhite}>
             Black and white
           </Button>
+          <label ref={processTimeMillisRef}></label>
         </div>
       </Row>
     </Container>

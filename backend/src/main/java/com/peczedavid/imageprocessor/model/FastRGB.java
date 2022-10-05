@@ -4,10 +4,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 public class FastRGB {
-    private int width;
-    private boolean hasAlphaChannel;
-    private int pixelLength;
-    private byte[] pixels;
 
     FastRGB(BufferedImage image) {
 
@@ -21,11 +17,7 @@ public class FastRGB {
         }
     }
 
-    public int getPixelLength() {
-        return pixelLength;
-    }
-
-    int getRGB(int x, int y) {
+    public int getRGB(int x, int y) {
         int pos = (y * pixelLength * width) + (x * pixelLength);
 
         int argb = -16777216; // 255 alpha
@@ -39,11 +31,21 @@ public class FastRGB {
         return argb;
     }
 
-    void setRGB(int x, int y, int rgb) {
+    public void setRGB(int x, int y, int rgb) {
         int pos = (y * pixelLength * width) + (x * pixelLength);
 
         pixels[pos++] = (byte) (rgb & 0xff);
         pixels[pos++] = (byte) ((rgb >> 8) & 0xff);
         pixels[pos++] = (byte) ((rgb >> 16) & 0xff);
     }
+
+    public int getPixelLength() {
+        return pixelLength;
+    }
+
+    private int width;
+    private boolean hasAlphaChannel;
+    private int pixelLength;
+    private byte[] pixels;
+    
 }
