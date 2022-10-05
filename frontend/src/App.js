@@ -1,6 +1,7 @@
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
+import Card from "react-bootstrap/Card";
+import Form from "react-bootstrap/Form";
 import axios from "axios";
 import { useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -8,20 +9,18 @@ import "bootstrap/dist/css/bootstrap.min.css";
 function App() {
   const baseImageRef = useRef();
   const processedBase64Ref = useRef();
+
   const fileRef = useRef();
   const processTimeMillisRef = useRef();
+  const selectionRef = useRef();
 
-  function ProcessGrayscale() {
-    SendProcessRequest("http://localhost:8080/api/process/grayscale");
-  }
+  const processUrlBase = "http://localhost:8080/api/process/";
 
-  function ProcessBlackAndWhite() {
-    SendProcessRequest("http://localhost:8080/api/process/black-and-white");
-  }
-
-  function SendProcessRequest(url) {
+  function SendProcessRequest() {
     axios
-      .post(url, { src: baseImageRef.current.src })
+      .post(processUrlBase + selectionRef.current.value, {
+        src: baseImageRef.current.src,
+      })
       .then((result) => {
         HandleResult(result);
       })
@@ -37,6 +36,7 @@ function App() {
   }
 
   function encodeImage() {
+    if (fileRef.current.files.length == 0) return;
     var file = fileRef.current.files[0];
     var reader = new FileReader();
     reader.onloadend = function () {
@@ -48,36 +48,39 @@ function App() {
 
   return (
     <Container>
-      <Row>
-        <h1>Image processing app</h1>
-      </Row>
-      <Row>
-        <div>
-          <img
-            className="me-4"
-            ref={baseImageRef}
-            src="https://via.placeholder.com/272x275"
-            alt="Original"
-          />
-          <img
-            ref={processedBase64Ref}
-            src="https://via.placeholder.com/272x275"
-            alt="Processed"
-          />
-        </div>
-      </Row>
-      <Row>
-        <div>
-          <input type="file" ref={fileRef} onChange={encodeImage}></input>
-          <Button variant="primary" onClick={ProcessGrayscale}>
-            Grayscale
-          </Button>
-          <Button variant="primary" onClick={ProcessBlackAndWhite}>
-            Black and white
-          </Button>
-          <label ref={processTimeMillisRef}></label>
-        </div>
-      </Row>
+      <Card className="mt-5 mx-auto" style={{ width: "675px" }}>
+        <Card.Body>
+          <div className="d-flex justify-content-center">
+            <img
+              ref={baseImageRef}
+              src="https://via.placeholder.com/272x275"
+              alt="Original"
+              className="me-5"
+            />
+            <img
+              ref={processedBase64Ref}
+              src="https://via.placeholder.com/272x275"
+              alt="Original"
+            />
+          </div>
+          <hr></hr>
+          <div className="d-flex justify-content-around">
+            <input type="file" ref={fileRef} onChange={encodeImage}></input>
+            <label
+              className="pt-1"
+              ref={processTimeMillisRef}
+              style={{ width: "75px" }}
+            ></label>
+            <Form.Select ref={selectionRef} style={{ width: "200px" }}>
+              <option value="grayscale">Grayscale</option>
+              <option value="black-and-white">Black and white</option>
+            </Form.Select>
+            <Button variant="primary" onClick={SendProcessRequest}>
+              Process
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
     </Container>
   );
 }
