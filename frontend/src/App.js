@@ -7,6 +7,20 @@ import axios from "axios";
 import { useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+const { Kafka } = require("kafkajs");
+const { Partitioners } = require("kafkajs");
+
+const kafka = new Kafka({
+  clientId: "image-request-producer",
+  ssl: true,
+  brokers: ["localhost:9092"],
+});
+
+const producer = kafka.producer({
+  createPartitioner: Partitioners.LegacyPartitioner,
+  allowAutoTopicCreation: true,
+});
+
 function App() {
   const baseImageRef = useRef();
   const processedBase64Ref = useRef();
@@ -17,7 +31,18 @@ function App() {
 
   const processUrlBase = "http://localhost:8080/api/process/";
 
-  function SendProcessRequest() {
+  async function SendProcessRequest() {
+    // Produce kafka message for image process
+
+    producer
+      .connect()
+      .then((result) =>
+        producer.send({
+          topic: "image-request-topic",
+          messages: [{ key: "key0", value: "xd" }],
+        })
+      )
+      .catch((error) => console.log(error));
     axios
       .post(processUrlBase + selectionRef.current.value, {
         src: baseImageRef.current.src,
@@ -37,7 +62,7 @@ function App() {
   }
 
   function encodeImage() {
-    if (fileRef.current.files.length == 0) return;
+    if (fileRef.current.files.length === 0) return;
     var file = fileRef.current.files[0];
     var reader = new FileReader();
     reader.onloadend = function () {
